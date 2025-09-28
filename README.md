@@ -1,9 +1,8 @@
 # Hack Technology / Project Attempted
 
-
 ## What you built? 
 
-TODO: Python Code that makes a Lime green outline of the User's lips on the webcam
+Python Code that makes a Lime green outline of the User's lips on the webcam
 
 <img width="784" height="502" alt="IMG_7043" src="https://github.com/user-attachments/assets/5fee23bc-7d61-487c-8f6e-1114ebde018e" />[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/uB4PX0S_)
 
