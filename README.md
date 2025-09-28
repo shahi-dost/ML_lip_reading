@@ -1,26 +1,31 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/uB4PX0S_)
-# Hack Technology / Project Attempted
+# Dataset
+This branch stores the training data used in our project, which we retrieved from GRID audiovisual speech corpus with a total of 24 talkers. The corpus has videos of faces, speech audio, and transcripts of what people said.  
+The goal is to make sure the model can achieve a certain amount of accuracy even with lower quality data (lower sample rate, normal video quality), which influenced which data we uploaded to intially will try to traint the model with. 
 
+## Description of Data
 
-## What you built? 
+# Audio 
+* **What**: speech recordings of each person saying short, fixed-vocabulary sentences
+  * we chose to use single uniform sample rate at 25,000 Hz to balance accuracy and potential latency
 
-TODO: Short description of what you attempted to build
+# Video
+* **What**:face videos of the same utterances (frontal view at ~25fps) that shows the mouth movements while the talker speaks. We chose the normal video quality because we decided to test if lower quality videos would product an acceptable lip/face landmark tracking
 
-Include some screenshots.
-[How?](https://help.github.com/articles/about-readmes/#relative-links-and-image-paths-in-readme-files)
+# Transcript/Word Alignments
+* **What**: our references for what each utterance (audio & video) is saying + the timeing of each word
 
-## Who Did What?
+## Quick Use
 
-TODO: who worked on what part?
+```# If large files use Git LFS:
+git lfs install
 
-## What you learned
+# Get the dataset branch
+git checkout <dataset-branch>
+git pull
 
-TODO: what worked / what didn't work
+# Unpack examples
+tar -xf data/25kHz/s1.tar -C data/25kHz/
+tar -xf data/video/s1.tar -C data/video/
 
-## Authors
-
-TODO: list of authors
-
-## Acknowledgments
-
-TODO: cite any tutorials followed here
+# Inspect transcripts/alignments
+ls data/transcripts/```
