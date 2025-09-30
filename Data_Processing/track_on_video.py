@@ -2,11 +2,8 @@ import cv2
 import math
 import mediapipe as mp
 
-# ---- MediaPipe setup ----
 mp_face_mesh = mp.solutions.face_mesh
 
-# MediaPipe FaceMesh landmark indices for lips (outer & inner contours)
-# (Commonly used subset; works well for aperture/shape)
 LIPS_OUTER = [
     61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308,
     324, 318, 402, 317, 14, 87, 178, 88, 95, 185, 40, 39,
@@ -18,11 +15,7 @@ LIPS_INNER = [
     375, 321, 405, 314, 17, 84, 181, 91, 146, 61
 ]
 
-# Convenience set (unique indices)
 LIPS_IDX = sorted(set(LIPS_OUTER + LIPS_INNER))
-
-def _euclid(a, b):
-    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 def get_lip_landmarks(video_path):
     """
@@ -76,97 +69,7 @@ def get_lip_landmarks(video_path):
 
     cap.release()
 
-
-def track_lip_motion(video_path):
-    """
-    Compute per-frame lip motion metrics:
-      - aperture: distance(13,14) / distance(61,291)   (scale-invariant)
-      - centroid_dx, centroid_dy: per-frame pixel shift of lip centroid
-      - centroid_speed: sqrt(dx^2 + dy^2)
-    Returns a list of dicts, one per frame.
-    """
-    results = []
-    prev_centroid = None
-
-    for rec in get_lip_landmarks(video_path):
-        pts = rec["points"]
-        frame = rec["frame"]
-        t = rec["time"]
-
-        aperture = None
-        centroid = None
-        centroid_dx = None
-        centroid_dy = None
-        centroid_speed = None
-
-        if pts:
-            # Map from index to coordinate for easy lookup
-            idx_to_pt = {i: p for i, p in zip(LIPS_IDX, pts)}
-
-            # Mouth width (corners): 61 (left) & 291 (right)
-            if 61 in idx_to_pt and 291 in idx_to_pt:
-                mouth_width = _euclid(idx_to_pt[61], idx_to_pt[291])
-            else:
-                mouth_width = None
-
-            # Inner vertical aperture: 13 (upper inner lip), 14 (lower inner lip)
-            if 13 in idx_to_pt and 14 in idx_to_pt and mouth_width and mouth_width > 1e-6:
-                aperture = _euclid(idx_to_pt[13], idx_to_pt[14]) / mouth_width
-
-            # Lip centroid (outer contour is smoother for motion)
-            outer_pts = [idx_to_pt[i] for i in LIPS_OUTER if i in idx_to_pt]
-            if outer_pts:
-                cx = sum(p[0] for p in outer_pts) / len(outer_pts)
-                cy = sum(p[1] for p in outer_pts) / len(outer_pts)
-                centroid = (cx, cy)
-
-                if prev_centroid is not None:
-                    centroid_dx = cx - prev_centroid[0]
-                    centroid_dy = cy - prev_centroid[1]
-                    centroid_speed = math.hypot(centroid_dx, centroid_dy)
-                prev_centroid = centroid
-            else:
-                prev_centroid = None  # reset if we lose track
-
-        results.append({
-            "frame": frame,
-            "time": t,
-            "aperture": aperture,               # None if not available this frame
-            "centroid": centroid,               # (x, y) or None
-            "centroid_dx": centroid_dx,
-            "centroid_dy": centroid_dy,
-            "centroid_speed": centroid_speed
-        })
-
-    return results
-
-# # ----------------- Example usage -----------------
-# motion = track_lip_motion("/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/s1/bbaf2n.mpg")
-# count = 0
-# for r in motion:
-#     print(r)
-#     count +=1
-#     if count == 3: break
-
-# for rec in get_lip_landmarks("/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/s1/bbaf2n.mpg"):
-#     print(rec["frame"], rec["time"], rec["points"])  # first 4 points
-#     break
-
-import cv2
-import math
-
-# assumes you already defined: LIPS_OUTER, LIPS_INNER, LIPS_IDX, get_lip_landmarks()
-
 def annotate_lips_on_video(in_path, out_path=None, show=True):
-    """
-    Draws lip landmarks (outer & inner contours) on the video.
-    - in_path: input .mpg (or any format OpenCV can read)
-    - out_path: optional output mp4 with overlays.
-    - show: if True, opens a preview window (press 'q' to quit).
-
-    Returns: out_path if written, else None.
-    """
-    # open a plain VideoCapture to clone properties for writer/preview
     cap0 = cv2.VideoCapture(in_path)
     if not cap0.isOpened():
         raise RuntimeError(f"Cannot open {in_path}")
@@ -257,38 +160,19 @@ def np_int(points_list):
     return arr
 
 def track_lip_point_speeds(video_path, normalize_by_width=False):
-    """
-    For each frame, compute per-point (dx, dy, speed) for all lip landmarks.
-    - Uses the same order as LIPS_IDX from your pipeline.
-    - If normalize_by_width=True, speeds are divided by mouth width (61↔291),
-      making them scale-invariant across zoom/cropping.
-
-    Returns: list of dicts, one per frame:
-      {
-        "frame": int,
-        "time": float,
-        "points": [(x,y), ...],                 # current positions
-        "dx":     [float or None, ...],         # per-point delta x vs prev
-        "dy":     [float or None, ...],         # per-point delta y vs prev
-        "speed":  [float or None, ...],         # hypot(dx,dy) per point
-        "mean_speed": float or None,            # average over available points
-        "max_speed":  float or None             # max over available points
-      }
-    """
+    # ChatGPT wrote this
     results = []
     prev_pts = None
 
-    for rec in get_lip_landmarks(video_path):  # yields {"frame","time","points"}
-        pts = rec["points"]  # list of (x,y) in order of LIPS_IDX
+    for rec in get_lip_landmarks(video_path): 
+        pts = rec["points"] 
         n = len(pts)
         dx = [None]*n
         dy = [None]*n
         sp = [None]*n
 
-        # optional normalization by mouth width
         norm = 1.0
         if normalize_by_width and n > 0:
-            # build quick map id->pt to fetch corners 61 & 291
             idx_to_pt = {i: p for i, p in zip(LIPS_IDX, pts)}
             if 61 in idx_to_pt and 291 in idx_to_pt:
                 x1,y1 = idx_to_pt[61]
@@ -306,15 +190,12 @@ def track_lip_point_speeds(video_path, normalize_by_width=False):
                 dx[k] = ddx
                 dy[k] = ddy
                 sp[k] = math.hypot(ddx, ddy)
-
-            # summarize
             valid = [v for v in sp if v is not None]
             mean_speed = sum(valid)/len(valid) if valid else None
             max_speed  = max(valid) if valid else None
         else:
             mean_speed = None
             max_speed  = None
-
         results.append({
             "frame": rec["frame"],
             "time": rec["time"],
@@ -325,15 +206,5 @@ def track_lip_point_speeds(video_path, normalize_by_width=False):
             "mean_speed": mean_speed,
             "max_speed": max_speed
         })
-
-        prev_pts = pts if pts else None  # reset if detection is missing
-
+        prev_pts = pts if pts else None 
     return results
-
-# --- run it ---
-# # 1) Preview only:
-# annotate_lips_on_video("/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/s1/bbaf2n.mpg", show=True)
-
-# # 2) Write to file (no preview):
-# annotate_lips_on_video("/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/s1/bbaf2n.mpg", out_path="/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Video_Tracked_Lips/s1/bbaf2_annotated.mp4", show=False)
-
