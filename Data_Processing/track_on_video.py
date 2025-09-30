@@ -1,8 +1,44 @@
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"      # TensorFlow C++: only ERROR+
+os.environ["GLOG_minloglevel"]   = "3"        # glog/absl: only FATAL
+os.environ["GLOG_logtostderr"]   = "1"        # (ensure logs go to stderr)
+os.environ["OPENCV_LOG_LEVEL"]   = "ERROR"    # OpenCV
+os.environ["ABSL_LOGGING_MIN_LOG_LEVEL"] = "3"
+os.environ["absl.logging.minloglevel"]   = "3"
+
 import cv2
 import math
 import mediapipe as mp
 
 mp_face_mesh = mp.solutions.face_mesh
+import os, sys, contextlib
+
+@contextlib.contextmanager
+def silence_stderr_fd():
+    """
+    Temporarily redirect the C-level file descriptor for stderr (fd=2) to /dev/null.
+    Works for C++ logs from MediaPipe/glog that bypass sys.stderr.
+    """
+    try:
+        fd = sys.stderr.fileno()
+    except (AttributeError, OSError):
+        # Fallback to Python-level only if fileno() is unavailable
+        with open(os.devnull, "w") as devnull:
+            old_py = sys.stderr
+            sys.stderr = devnull
+            try: yield
+            finally: sys.stderr = old_py
+        return
+
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    old_fd = os.dup(fd)
+    try:
+        os.dup2(devnull, fd)
+        yield
+    finally:
+        os.dup2(old_fd, fd)
+        os.close(old_fd)
+        os.close(devnull)
 
 LIPS_OUTER = [
     61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308,
@@ -18,16 +54,6 @@ LIPS_INNER = [
 LIPS_IDX = sorted(set(LIPS_OUTER + LIPS_INNER))
 
 def get_lip_landmarks(video_path):
-    """
-    Yield per-frame lip landmark coordinates from a video.
-    Returns an iterator of dicts:
-      {
-        "frame": int,
-        "time": float (seconds),
-        "points": List[(x_px, y_px)] in the order of LIPS_IDX
-      }
-    If a frame has no face, 'points' is an empty list.
-    """
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open video: {video_path}")
@@ -35,37 +61,37 @@ def get_lip_landmarks(video_path):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     w   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h   = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    with silence_stderr_fd():
+        with mp_face_mesh.FaceMesh(
+            static_image_mode=False,
+            max_num_faces=1,
+            refine_landmarks=True,     # adds iris + refined mouth contours
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
+        ) as mesh:
 
-    with mp_face_mesh.FaceMesh(
-        static_image_mode=False,
-        max_num_faces=1,
-        refine_landmarks=True,     # adds iris + refined mouth contours
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
-    ) as mesh:
+            frame_idx = 0
+            while True:
+                ok, frame = cap.read()
+                if not ok:
+                    break
+                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                res = mesh.process(rgb)
 
-        frame_idx = 0
-        while True:
-            ok, frame = cap.read()
-            if not ok:
-                break
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            res = mesh.process(rgb)
+                points = []
+                if res.multi_face_landmarks:
+                    lm = res.multi_face_landmarks[0].landmark
+                    for i in LIPS_IDX:
+                        x = int(lm[i].x * w)
+                        y = int(lm[i].y * h)
+                        points.append((x, y))
 
-            points = []
-            if res.multi_face_landmarks:
-                lm = res.multi_face_landmarks[0].landmark
-                for i in LIPS_IDX:
-                    x = int(lm[i].x * w)
-                    y = int(lm[i].y * h)
-                    points.append((x, y))
-
-            yield {
-                "frame": frame_idx,
-                "time": frame_idx / fps,
-                "points": points
-            }
-            frame_idx += 1
+                yield {
+                    "frame": frame_idx,
+                    "time": frame_idx / fps,
+                    "points": points
+                }
+                frame_idx += 1
 
     cap.release()
 
@@ -206,5 +232,7 @@ def track_lip_point_speeds(video_path, normalize_by_width=False):
             "mean_speed": mean_speed,
             "max_speed": max_speed
         })
+
         prev_pts = pts if pts else None 
+
     return results

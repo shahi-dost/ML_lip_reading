@@ -3,6 +3,7 @@ from track_on_video import *
 import numpy as np
 import pandas as pd
 import gzip
+import random
 from Bio import AlignIO
 from pathlib import Path
 
@@ -33,15 +34,6 @@ def read_align(path):
             items.append((start, end, text))
     return items
 
-
-# frame_by_frame_df = pd.DataFrame(columns=["frame", "time", "centroid", "centroid_dx", "centroid_dy", "centroid_speed"])
-# motion = track_lip_motion("/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/s1/bbaf2n.mpg")
-# count = 0
-# for r in motion:
-#     print(r)
-#     count +=1
-#     if count == 3: break
-
 def create_df_from_video(video_path, normalize_by_width=False):
     # Shahi wrote this
     dict_of_points = track_lip_point_speeds(video_path, normalize_by_width=normalize_by_width)
@@ -67,3 +59,44 @@ def create_df_from_video(video_path, normalize_by_width=False):
             df.loc[i, f"point_{j}_speed"] = dict_of_points[i]['speed'][j]
 
     return df
+
+def create_video_transcription_df_from_folder(video_folder_path, transcription_video_path, normalize_by_width=False):
+    # Shahi wrote this
+    participants = os.listdir(video_folder_path)
+    participants = [i for i in participants if not i.startswith(".")]
+    print(participants)
+    
+    return_df = pd.DataFrame()
+
+    for i in participants:
+        videos = os.listdir(os.path.join(video_folder_path, i))
+        random.shuffle(videos)
+        for j in videos[:5]:
+            vid_df = create_df_from_video(os.path.join(video_folder_path, i, j), normalize_by_width=normalize_by_width)
+
+            to_align = j.split(".")[0] + ".align"
+            align = read_align(os.path.join(transcription_video_path, to_align))
+            vid_df = vid_df.assign(participant=i, video=j, word='', word_begin_time=None, word_end_time=None)
+
+            for row in vid_df.itertuples():
+                for start, end, text in align:
+                    start = start/25000
+                    end = end/25000
+                    if row.time >= start and row.time <= end:
+                        vid_df.at[row.Index, 'word'] = text
+                        vid_df.at[row.Index, 'word_begin_time'] = start
+                        vid_df.at[row.Index, 'word_end_time'] = end
+                        break
+
+            return_df = pd.concat([return_df, vid_df.reindex(columns=vid_df.columns)],ignore_index=True)
+    return return_df
+
+
+def save_df_to_csv(df, out_path):
+    df.to_csv(out_path, index=False)
+
+# vd_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/"
+# tr_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Transcriptions/align/"
+# save_df = create_video_transcription_df_from_folder(vd_path, tr_path, normalize_by_width=False)
+# out_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/processed_data.csv"
+# save_df_to_csv(save_df, out_path)
