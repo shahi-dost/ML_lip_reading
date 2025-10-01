@@ -20,4 +20,4 @@ Shahi Dost
 
 ## Acknowledgments
 
-TODO: ChatGPT, https://github.com/NumesSanguis/FACSvatar/issues/33 
+ChatGPT, https://github.com/NumesSanguis/FACSvatar/issues/33 
