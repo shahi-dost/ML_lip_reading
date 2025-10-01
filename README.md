@@ -1,7 +1,7 @@
 # Dataset
 This branch stores the training data used in our project, which we retrieved from GRID audiovisual speech corpus with a total of 24 talkers. The corpus has videos of faces, speech audio, and transcripts of what people said.  
 The goal is to make sure the model can achieve a certain amount of accuracy even with lower quality data (lower sample rate, normal video quality), which influenced which data we uploaded to intially will try to traint the model with. 
-
+Link to data: https://spandh.dcs.shef.ac.uk/gridcorpus/#examples
 ## Description of Data
 
 # Audio 
