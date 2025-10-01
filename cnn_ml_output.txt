@@ -1,0 +1,73 @@
+[build_seq6] Skipped 149 clips that weren't exactly 6 words.
+[build_seq6] Skipped 20 clips that weren't exactly 6 words.
+[build_seq6] Skipped 18 clips that weren't exactly 6 words.
+Model: "functional"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                  ┃ Output Shape              ┃         Param # ┃ Connected to               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ input_layer (InputLayer)      │ (None, 75, 200)           │               0 │ -                          │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ bidirectional (Bidirectional) │ (None, 75, 256)           │         253,440 │ input_layer[0][0]          │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ dropout (Dropout)             │ (None, 75, 256)           │               0 │ bidirectional[0][0]        │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ bidirectional_1               │ (None, 75, 128)           │         123,648 │ dropout[0][0]              │
+│ (Bidirectional)               │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ time_distributed              │ (None, 75, 6)             │             774 │ bidirectional_1[0][0]      │
+│ (TimeDistributed)             │                           │                 │                            │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ permute (Permute)             │ (None, 6, 75)             │               0 │ time_distributed[0][0]     │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ softmax (Softmax)             │ (None, 6, 75)             │               0 │ permute[0][0]              │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ dot (Dot)                     │ (None, 6, 128)            │               0 │ softmax[0][0],             │
+│                               │                           │                 │ bidirectional_1[0][0]      │
+├───────────────────────────────┼───────────────────────────┼─────────────────┼────────────────────────────┤
+│ time_distributed_1            │ (None, 6, 53)             │           6,837 │ dot[0][0]                  │
+│ (TimeDistributed)             │                           │                 │                            │
+└───────────────────────────────┴───────────────────────────┴─────────────────┴────────────────────────────┘
+ Total params: 384,699 (1.47 MB)
+ Trainable params: 384,699 (1.47 MB)
+ Non-trainable params: 0 (0.00 B)
+2 classes missing from train (ok): ['sil', 'sp'] 
+Epoch 1/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 29s 285ms/step - acc: 0.1033 - loss: 3.3186 - val_acc: 0.1866 - val_loss: 2.6915 - learning_rate: 0.0010
+Epoch 2/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 23s 293ms/step - acc: 0.2216 - loss: 2.5778 - val_acc: 0.2602 - val_loss: 2.5130 - learning_rate: 0.0010
+Epoch 3/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 24s 308ms/step - acc: 0.2777 - loss: 2.4262 - val_acc: 0.2935 - val_loss: 2.4580 - learning_rate: 0.0010
+Epoch 4/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 26s 338ms/step - acc: 0.3329 - loss: 2.3309 - val_acc: 0.3409 - val_loss: 2.4130 - learning_rate: 0.0010
+Epoch 5/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 24s 307ms/step - acc: 0.3875 - loss: 2.2252 - val_acc: 0.3785 - val_loss: 2.3616 - learning_rate: 0.0010
+Epoch 6/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 20s 259ms/step - acc: 0.4368 - loss: 2.1021 - val_acc: 0.3978 - val_loss: 2.3320 - learning_rate: 0.0010
+Epoch 7/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 23s 292ms/step - acc: 0.4741 - loss: 1.9674 - val_acc: 0.4247 - val_loss: 2.2951 - learning_rate: 0.0010
+Epoch 8/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 24s 307ms/step - acc: 0.5136 - loss: 1.8086 - val_acc: 0.4333 - val_loss: 2.2863 - learning_rate: 0.0010
+Epoch 9/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 21s 272ms/step - acc: 0.5442 - loss: 1.6588 - val_acc: 0.4478 - val_loss: 2.2766 - learning_rate: 0.0010
+Epoch 10/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 22s 284ms/step - acc: 0.5755 - loss: 1.5127 - val_acc: 0.4618 - val_loss: 2.2802 - learning_rate: 0.0010
+Epoch 11/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 27s 345ms/step - acc: 0.6058 - loss: 1.3671 - val_acc: 0.4812 - val_loss: 2.2523 - learning_rate: 0.0010
+Epoch 12/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 24s 305ms/step - acc: 0.6278 - loss: 1.2374 - val_acc: 0.4839 - val_loss: 2.2692 - learning_rate: 0.0010
+Epoch 13/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 0s 244ms/step - acc: 0.6551 - loss: 1.1337 
+Epoch 13: ReduceLROnPlateau reducing learning rate to 0.0005000000237487257.
+78/78 ━━━━━━━━━━━━━━━━━━━━ 20s 254ms/step - acc: 0.6551 - loss: 1.1104 - val_acc: 0.5038 - val_loss: 2.2589 - learning_rate: 0.0010
+Epoch 14/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 27s 343ms/step - acc: 0.6809 - loss: 0.9778 - val_acc: 0.4962 - val_loss: 2.2932 - learning_rate: 5.0000e-04
+Epoch 15/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 0s 299ms/step - acc: 0.6981 - loss: 0.9065 
+Epoch 15: ReduceLROnPlateau reducing learning rate to 0.0002500000118743628.
+78/78 ━━━━━━━━━━━━━━━━━━━━ 24s 314ms/step - acc: 0.7027 - loss: 0.8746 - val_acc: 0.5043 - val_loss: 2.3307 - learning_rate: 5.0000e-04
+Epoch 16/20
+78/78 ━━━━━━━━━━━━━━━━━━━━ 25s 317ms/step - acc: 0.7190 - loss: 0.7907 - val_acc: 0.5134 - val_loss: 2.3027 - learning_rate: 2.5000e-04
+Epoch 16: early stopping
+Restoring model weights from the end of the best epoch: 11.
+10/10 ━━━━━━━━━━━━━━━━━━━━ 2s 74ms/step - acc: 0.4717 - loss: 1.4683
+Saved 312 rows to predictions_vs_ref_slots.csv
