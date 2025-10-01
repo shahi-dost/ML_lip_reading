@@ -232,5 +232,26 @@ history = model.fit(
     verbose=1
 )
 
-
 model.evaluate(X_test6, Y_test6, verbose=1)
+
+def export_slots_csv(model, X_test6, Y_test6, vids_test, out_path):
+    # mostly written by shahi with debugging help from chatGPT
+    probs = model.predict(X_test6, batch_size=32, verbose=0)
+    hyp_ids = probs.argmax(axis=-1)
+    rows = []
+    for i in range(len(X_test6)):
+        ref = [id2word[int(t)] for t in Y_test6[i].tolist()]
+        hyp = [id2word[int(t)] for t in hyp_ids[i].tolist()]
+        slot_acc = float(np.mean(np.array(Y_test6[i]) == hyp_ids[i]))
+        rows.append({
+            "video": vids_test[i],
+            "ref_transcript": " ".join(ref),
+            "hyp_transcript": " ".join(hyp),
+            "slot_acc": f"{slot_acc:.3f}"
+        })
+    # debugged by chatGPT
+    with open(out_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["video","ref_transcript","hyp_transcript","slot_acc"])
+        w.writeheader(); w.writerows(rows)
+
+export_slots_csv(model, X_test6, Y_test6, vids_test, out_path="predictions_vs_transcripts.csv")
