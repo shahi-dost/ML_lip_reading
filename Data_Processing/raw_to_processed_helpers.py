@@ -70,8 +70,9 @@ def create_video_transcription_df_from_folder(video_folder_path, transcription_v
 
     for i in participants:
         videos = os.listdir(os.path.join(video_folder_path, i))
+        videos = [a for a in videos if a.endswith(".mpg")]
         random.shuffle(videos)
-        for j in videos[:5]:
+        for j in videos[:100]:
             vid_df = create_df_from_video(os.path.join(video_folder_path, i, j), normalize_by_width=normalize_by_width)
 
             to_align = j.split(".")[0] + ".align"
@@ -95,8 +96,9 @@ def create_video_transcription_df_from_folder(video_folder_path, transcription_v
 def save_df_to_csv(df, out_path):
     df.to_csv(out_path, index=False)
 
-# vd_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Video/"
-# tr_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/Unzip_All_Transcriptions/align/"
-# save_df = create_video_transcription_df_from_folder(vd_path, tr_path, normalize_by_width=False)
-# out_path = "/Users/shahidullahdost/Documents/CS98/Word_Prediction/Data_Processing/processed_data.csv"
-# save_df_to_csv(save_df, out_path)
+vd_path = "Unzipped/Unzip_All_Video"
+tr_path = "Unzipped/Unzip_All_Transcriptions/align/"
+save_df = create_video_transcription_df_from_folder(vd_path, tr_path, normalize_by_width=False)
+
+out_path = "/Users/jenniferlee/Documents/CS98/hack-a-thing-shahijennifer/Processed_Data/processed_data.csv"
+save_df_to_csv(save_df, out_path)
