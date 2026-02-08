@@ -8,7 +8,7 @@ Our project is a Machine Learning model that uses facial recognition to track a 
 The training data used in our project was retrieved from the GRID audiovisual speech corpus with a total of 34 talkers. The corpus has videos of faces, speech audio, and transcripts of what people said.  
 The goal is to make sure the model can achieve a certain amount of accuracy even with lower quality data (lower sample rate, normal video quality), which influenced which data we uploaded to intially. The dataset is limited to a very specific sequence structure: [verb] + [color] + [preposition] + [letter] + [number] + [adverb] for ex: Lay Red at a2 please
 Link to data: https://spandh.dcs.shef.ac.uk/gridcorpus/#examples
-
+<img width="784" height="502" alt="IMG_7043" src="https://github.com/user-attachments/assets/5fee23bc-7d61-487c-8f6e-1114ebde018e" />
 ## Description of Data
 
 ## Audio 
