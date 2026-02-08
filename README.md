@@ -2,8 +2,6 @@
 # What you built? 
 Our project is a Machine Learning model that uses facial recognition to track a person's lips to understand what was said without audio. We used MediaPipe for the facial feature mappings and TensorFlow Keras for the ML aspect.
 
-<img width="784" height="502" alt="IMG_7043" src="https://github.com/user-attachments/assets/5fee23bc-7d61-487c-8f6e-1114ebde018e" />[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/uB4PX0S_)
-
 <img width="503" height="320" alt="image" src="https://github.com/user-attachments/assets/27d66ddc-d46a-42ff-8415-3f61b09932f7" />
 
 ## Dataset
